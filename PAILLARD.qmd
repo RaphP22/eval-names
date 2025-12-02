@@ -1,3 +1,5 @@
+
+
 ---
 title: "PAILLARD"
 author: "Raphael Paillard"
@@ -49,12 +51,12 @@ students <- students %>%
   mutate(
     id = as.integer(id),
     group = as.factor(group),
-    birth_date = as.Date(birth_date),
+    birth_dates = as.Date(birth_date),
     sex = as.factor(sex)
   )
 
 
-cat("La colonne **birth_date** du data frame `students` est de classe", class(students$birth_date))
+cat("La colonne **birth_date** du data frame `students` est de classe", class(students$birth_dates))
 
 ```
 
@@ -100,4 +102,11 @@ students %>%
 ```
 
 
+## Question 7
+
+
+
+
+
+```
 

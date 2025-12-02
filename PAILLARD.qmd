@@ -132,8 +132,10 @@ age_median <- students %>%
   group_by(group) %>%
   summarise(median_age = round(median(age), 0))  # Arrondir à l'entier
 
-kable(age_median, caption = "Âge médian des étudiants par groupe")
+kable(age_median, caption = "Medium age of students per group")
 ```
+
+
 
 
 

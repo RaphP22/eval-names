@@ -136,6 +136,22 @@ kable(age_median, caption = "Medium age of students per group")
 ```
 
 
+## Question 9
+
+```{r}
+
+students <- students %>%
+  mutate(age = as.integer(format(Sys.Date(), "%Y")) - as.integer(format(birth_date, "%Y")))
+
+oldest_students <- students %>%
+  group_by(group) %>%
+  slice_max(age, with_ties = FALSE) %>%  
+  ungroup() %>%
+  arrange(desc(age)) %>% 
+  select(id, sex, age)  
+
+kable(oldest_students, caption = "oldest students per group")
+```
 
 
 

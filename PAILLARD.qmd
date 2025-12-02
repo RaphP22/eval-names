@@ -1,0 +1,103 @@
+---
+title: "PAILLARD"
+author: "Raphael Paillard"
+format: html
+---
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(here)
+
+```
+
+## Question 1 :
+
+```{r}
+courses <- read_csv("C:/Users/raphp/Downloads/subject-32/courses.csv")
+
+
+```
+## Question 2
+
+```{r}
+library(knitr)
+
+courses <- courses %>%
+  rename(
+    "course_name" = course,
+    "identifier" = course_id,
+    "semester" = semester,
+    "number_of_exams" = nb_grades
+  )
+
+courses_sorted <- courses %>%
+  arrange(course_name)
+
+kable(courses_sorted, caption = "Liste des cours triés par ordre alphabétique")
+
+```
+
+## Question 3
+
+```{r}
+students <- read_csv("C:/Users/raphp/Downloads/subject-32/students.csv")
+
+students <- students %>%
+  mutate(
+    id = as.integer(id),
+    group = as.factor(group),
+    birth_date = as.Date(birth_date),
+    sex = as.factor(sex)
+  )
+
+
+cat("La colonne **birth_date** du data frame `students` est de classe", class(students$birth_date))
+
+```
+
+## Question 4
+
+```{r}
+grades <- read_csv("C:/Users/raphp/Downloads/subject-32/grades.csv")
+```
+
+
+
+## Question 5
+```{r}
+students %>%
+  group_by(group) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = group, y = n)) +
+  geom_col(fill = "steelblue") +
+  labs(
+    title = "Students per group",
+    x = "Group",
+    y = "Number of students"
+  ) +
+  theme_minimal()
+
+```
+
+## Question 6
+
+```{r}
+students %>%
+  group_by(group, sex) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  ggplot(aes(x = group, y = n, fill = sex)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "repartition of gender per group",
+    x = "Group",
+    y = "number of students",
+    fill = "gender"
+  ) +
+  theme_minimal()
+```
+
+
+

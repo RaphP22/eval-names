@@ -136,6 +136,9 @@ kable(age_median, caption = "Medium age of students per group")
 ```
 
 
+
+
+
 ## Question 9
 
 ```{r}
@@ -151,6 +154,142 @@ oldest_students <- students %>%
   select(id, sex, age)  
 
 kable(oldest_students, caption = "oldest students per group")
+```
+
+## Question 10
+
+```{r}
+
+grades <- read_delim(
+  "C:/Users/raphp/Downloads/subject-32/grades.csv",
+  delim = ":",
+  na = "unknown",
+  col_names = TRUE
+)
+total_grades <- grades %>%
+  filter(!is.na(grade)) %>%
+  nrow()
+
+
+cat("The dataset contains", total_grades, "notes.")
+
+
+```
+## Question 11 
+
+```{r}
+pharaonic_law_id <- courses %>%
+  filter(course_name == "Pharaonic Law and Governance") %>%
+  pull(identifier)
+
+avg_grades_by_group <- grades %>%
+  filter(course_id == pharaonic_law_id) %>%
+  left_join(students, by = "id") %>%
+  group_by(group) %>%
+  summarise(avg_grade = mean(grade, na.rm = TRUE))
+
+avg_grades_by_group %>%
+  ggplot(aes(x = factor(group), y = avg_grade)) +
+  geom_col(fill = "steelblue") +
+  labs(
+    title = "Average grades in Pharaonic Law and Governance per group",
+    x = "Group",
+    y = "average"
+  ) +
+  theme_minimal()
+
+
+
+```
+
+
+## Question 12 
+
+```{r}
+grades_with_semester <- grades %>%
+  left_join(courses, by = c("course_id" = "identifier"))
+
+grades_with_semester %>%
+  filter(!is.na(grade)) %>%
+  ggplot(aes(x = grade, fill = factor(semester))) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Grades per semester",
+    x = "grade",
+    y = "density",
+    fill = "semester"
+  ) +
+  theme_minimal()
+```
+
+
+## Question 13
+
+```{r}
+grades_per_student <- grades %>%
+  filter(!is.na(grade)) %>%
+  group_by(id) %>%
+  summarise(nb_grades = n()) %>%
+  left_join(students, by = "id") %>%
+  select(id, group, sex, nb_grades)
+
+grades_per_student %>%
+  slice_head(n = 5) %>%
+  kable(caption = "slice of number of grade per student")
+
+grades_stats <- grades_per_student %>%
+  summarise(
+    min = min(nb_grades),
+    max = max(nb_grades),
+    mean = mean(nb_grades),
+    median = median(nb_grades)
+  )
+
+kable(grades_stats, caption = "Stats about the number of grades per student")
+```
+
+## Question 14
+
+```{r}
+grades_per_student %>%
+  ggplot(aes(x = nb_grades, fill = sex)) +
+  geom_histogram(binwidth = 1, position = "dodge") +
+  labs(
+    title = "Distribution of nb of grade per gender",
+    x = "nb of grades",
+    y = "nb of students",
+    fill = "gender"
+  ) +
+  theme_minimal()
+
+
+
+```
+
+## Question 15
+
+```{r}
+pyramid_id <- courses %>%
+  filter(course_name == "Pyramid Construction and Engineering") %>%
+  pull(identifier)
+
+grades_pyramid <- grades %>%
+  filter(course_id == pyramid_id) %>%
+  group_by(id) %>%
+  summarise(nb_grades = n()) %>%
+  left_join(students %>% select(id, group), by = "id")
+
+grades_pyramid %>%
+  slice_head(n = 5) %>%
+  kable(caption = "Slice of Nb of grades in Pyramid Construction and Engineering par étudiant")
+```
+
+## Question 16
+
+```{r}
+
+
+
 ```
 
 

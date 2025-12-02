@@ -104,9 +104,40 @@ students %>%
 
 ## Question 7
 
+```{r}
+students <- students
+  mutate(age = as.integer(format(Sys.Date(), "%Y")) - as.integer(format(birth_date, "%Y")))
 
+students
+  ggplot(aes(x = age)) +
+  geom_histogram(binwidth = 1, fill = "lightgreen") +
+  labs(
+    title = "Age of students",
+    x = "age",
+    y = "number of students"
+  ) +
+  theme_minimal()
 
 
 
 ```
+
+## Question 8 
+
+```{r}
+students <- students %>%
+  mutate(age = as.integer(format(Sys.Date(), "%Y")) - as.integer(format(birth_date, "%Y")))
+
+age_median <- students %>%
+  group_by(group) %>%
+  summarise(median_age = round(median(age), 0))  # Arrondir à l'entier
+
+kable(age_median, caption = "Âge médian des étudiants par groupe")
+```
+
+
+
+
+
+
 

@@ -202,7 +202,6 @@ avg_grades_by_group %>%
 
 ```
 
-
 ## Question 12 
 
 ```{r}
@@ -287,10 +286,301 @@ grades_pyramid %>%
 ## Question 16
 
 ```{r}
+grades_pyramid_dist <- grades_pyramid %>%
+  group_by(nb_grades) %>%
+  summarise(nb_students = n())
 
+grades_pyramid_dist %>%
+  ggplot(aes(x = nb_grades, y = nb_students)) +
+  geom_col(fill = "lightblue") +
+  labs(
+    title = "Distribution of the number of grade in Pyramid Construction and Engineering",
+    x = "nb of grade",
+    y = "nb of student"
+  ) +
+  theme_minimal()
 
 
 ```
+
+## Question 17 
+
+```{r}
+avg_grades_pyramid_by_group <- grades_pyramid %>%
+  group_by(group) %>%
+  summarise(avg_nb_grades = mean(nb_grades, na.rm = TRUE))
+
+avg_grades_pyramid_by_group %>%
+  ggplot(aes(x = factor(group), y = avg_nb_grades)) +
+  geom_col(fill = "orange") +
+  labs(
+    title = "Avergage number of grade in Pyramid Construction and Engineering per group",
+    x = "Group",
+    y = "average nb of grade"
+  ) +
+  theme_minimal()
+```
+
+## Question 18 
+
+```{r}
+grades_pyramid_sex <- grades_pyramid %>%
+  left_join(students %>% select(id, sex), by = "id")
+
+avg_grades_pyramid_by_group_sex <- grades_pyramid_sex %>%
+  group_by(group, sex) %>%
+  summarise(avg_nb_grades = mean(nb_grades, na.rm = TRUE))
+
+avg_grades_pyramid_by_group_sex %>%
+  ggplot(aes(x = factor(group), y = avg_nb_grades, fill = sex)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "average nb of grade in Pyramid Construction and Engineering per group and per gender",
+    x = "Group",
+    y = "average nb of grades",
+    fill = "gender"
+  ) +
+  theme_minimal()
+```
+
+## Question 19 
+
+```{r}
+
+courses <- courses %>%
+  rename(course_id = identifier)
+
+avg_grades_by_student_course <- grades %>%
+  filter(!is.na(grade)) %>%
+  group_by(id, course_id) %>%
+  summarise(avg_grade = mean(grade), .groups = "drop") %>%
+  left_join(students %>% select(id, group), by = "id") %>%
+  left_join(courses %>% select(course_id, course_name), by = "course_id")
+
+avg_grades_wide <- avg_grades_by_student_course %>%
+  select(id, group, course_name, avg_grade) %>%
+  pivot_wider(
+    names_from = course_name,
+    values_from = avg_grade,
+    values_fill = NA
+  )
+
+head(avg_grades_wide, 5) %>%
+  knitr::kable(caption = "slice of average of grades per students and per course")
+```
+
+## Question 20 
+
+```{r}
+combats_vs_mummification <- avg_grades_wide %>%
+  select(id, `Combat and Martial Arts of Ancient Egypt`, `Mummification and Mortuary Rituals`) %>%
+  na.omit()  
+
+combats_vs_mummification %>%
+  ggplot(aes(x = `Mummification and Mortuary Rituals`, y = `Combat and Martial Arts of Ancient Egypt`)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = "Average of grades in Combat vs Mummification",
+    x = "Average in Mummification and Mortuary Rituals",
+    y = "average in Combat and Martial Arts"
+  ) +
+  theme_minimal()
+```
+
+
+## Question 21
+
+```{r}
+correlation_data <- avg_grades_wide %>%
+  select(id, group, `Medicine and Herbalism`, `Alchemy and Hermetic Philosophy`) %>%
+  na.omit()
+
+correlation_by_group <- correlation_data %>%
+  group_by(group) %>%
+  summarise(correlation = cor(`Medicine and Herbalism`, `Alchemy and Hermetic Philosophy`, use = "complete.obs"))
+
+correlation_by_group %>%
+  knitr::kable(caption = "Coorelation between Medicine and Herbalism et Alchemy and Hermetic Philosophy per group")
+```
+
+## Question 22
+
+```{r}
+most_correlated_group <- correlation_by_group %>%
+  slice_max(abs(correlation), n = 1) %>%
+  pull(group)
+
+
+most_correlated_data <- correlation_data %>%
+  filter(group == most_correlated_group)
+
+
+most_correlated_data %>%
+  ggplot(aes(x = `Alchemy and Hermetic Philosophy`, y = `Medicine and Herbalism`)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(
+    title = paste("Averege grade for the grp", most_correlated_group, "(biggest correlation)"),
+    x = "average in Alchemy and Hermetic Philosophy",
+    y = "average in Medicine and Herbalism"
+  ) +
+  theme_minimal()
+
+
+```
+
+## Question 23
+
+```{r}
+final_grades <- avg_grades_wide %>%
+  mutate(final_grade = rowMeans(select(., -id, -group), na.rm = TRUE)) %>%
+  left_join(students %>% select(id, sex), by = "id") %>%
+  select(id, group, sex, final_grade) %>%
+  arrange(desc(final_grade))
+
+final_grades %>%
+  slice_head(n = 5) %>%
+  knitr::kable(caption = "Top 5 students by final grade")
+```
+
+
+## Question 24
+
+```{r}
+final_grades %>%
+  ggplot(aes(x = factor(group), y = final_grade)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(
+    title = "distributuon of final grades per group",
+    x = "Group",
+    y = "final grade"
+  ) +
+  theme_minimal()
+```
+
+## Question 25
+
+```{r}
+final_grades %>%
+  ggplot(aes(x = factor(group), y = final_grade, fill = sex)) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of final grades per group and per gender",
+    x = "Group",
+    y = "final grade",
+    fill = "gender"
+  ) +
+  theme_minimal()
+```
+
+
+## Question 26 
+
+```{r}
+semester_grades <- avg_grades_by_student_course %>%
+  left_join(courses %>% select(course_id, semester), by = "course_id") %>%
+  group_by(id, semester) %>%
+  summarise(avg_semester_grade = mean(avg_grade, na.rm = TRUE), .groups = "drop")
+
+passing_students <- semester_grades %>%
+  group_by(id) %>%
+  summarise(
+    min_course_grade = min(avg_grades_by_student_course$avg_grade[avg_grades_by_student_course$id == first(id)], na.rm = TRUE),
+    avg_semester1 = avg_semester_grade[semester == 1],
+    avg_semester2 = avg_semester_grade[semester == 2],
+    .groups = "drop"
+  ) %>%
+  mutate(
+    pass = (min_course_grade >= 5) & (avg_semester1 >= 10) & (avg_semester2 >= 10)
+  ) %>%
+  left_join(final_grades %>% select(id, group, final_grade), by = "id")
+
+passing_students %>%
+  slice_head(n = 5) %>%
+  knitr::kable(caption = "Slice of passing students")
+```
+
+## Question 27
+
+```{r}
+failed_but_high_final_grade <- passing_students %>%
+  filter(final_grade >= 10, !pass)
+
+n_failed_but_high_final_grade <- nrow(failed_but_high_final_grade)
+
+cat("Nb of students with >=10 but who don't pass :", n_failed_but_high_final_grade)
+```
+## Question 28
+
+```{r}
+pass_rate_by_group <- passing_students %>%
+  group_by(group) %>%
+  summarise(
+    pass_rate = mean(pass) * 100,
+    .groups = "drop"
+  )
+
+pass_rate_by_group %>%
+  ggplot(aes(x = factor(group), y = pass_rate)) +
+  geom_col(fill = "lightgreen") +
+  labs(
+    title = "Pass rate by groupe",
+    x = "Group",
+    y = "pass rate"
+  ) +
+  theme_minimal()
+```
+
+## Question 29 
+
+```{r}
+
+avg_grades_by_student_course <- grades %>%
+  filter(!is.na(grade)) %>%
+  group_by(id, course_id) %>%
+  summarise(avg_grade = mean(grade), .groups = "drop") %>%
+  left_join(courses %>% select(course_id, course_name), by = "course_id")
+
+failing_students_by_course <- avg_grades_by_student_course %>%
+  filter(avg_grade < 5) %>%
+  group_by(course_name) %>%
+  summarise(nb_failing_students = n_distinct(id), .groups = "drop") %>%
+  arrange(desc(nb_failing_students))
+
+failing_students_by_course %>%
+  slice_head(n = 1) %>%
+  knitr::kable(caption = "course most responsible for failure (less than 5)")
+```
+
+## Question 30 
+
+```{r}
+passing_students_with_age <- passing_students %>%
+  left_join(students %>% select(id, age), by = "id")
+
+pass_rate_by_age <- passing_students_with_age %>%
+  group_by(age) %>%
+  summarise(
+    pass_rate = mean(pass) * 100,
+    nb_students = n(),
+    .groups = "drop"
+  )
+
+pass_rate_by_age %>%
+  ggplot(aes(x = age, y = pass_rate)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "pass rate depending on age",
+    x = "age",
+    y = "pass rate"
+  ) +
+  theme_minimal()
+```
+
+
+
 
 
 
